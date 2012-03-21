@@ -1,0 +1,7 @@
+GIMP plugin collections for image signal processing 
+===================================================
+
+Copyright (c) 2012 HyongYol Chu <hyongyolchu@gmail.com>
+
+import.c
+	import image data with various color space
