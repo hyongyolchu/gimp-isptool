@@ -5,6 +5,7 @@
  */
 
 #include <libgimp/gimp.h>
+#include <libgimp/gimpui.h>
 
 /* MACRO */
 #define IMPORT_PLUGIN_NAME "file-cstool-import"
@@ -18,6 +19,8 @@ static void run(const gchar* name,
 		const GimpParam* param,
 		gint* nreturn_vals,
 		GimpParam** return_vals);
+
+static gboolean format_dialog(GimpDrawable* drawable);
 
 GimpPlugInInfo PLUG_IN_INFO =
 {
@@ -69,6 +72,7 @@ static void run(const gchar* name,
 	static GimpParam values[2];
 	GimpPDBStatusType status = GIMP_PDB_SUCCESS;
 	GimpRunMode run_mode;
+	GimpDrawable* drawable;
 
 	/* Setting mandatory output values */
 	*nreturn_vals = 1;
@@ -86,6 +90,11 @@ static void run(const gchar* name,
 		switch(run_mode)
 		{
 			case GIMP_RUN_INTERACTIVE:
+				/* Display the dialog */
+				if(!format_dialog(drawable));
+				{
+					return;
+				}
 				break;
 
 			case GIMP_RUN_NONINTERACTIVE:
@@ -108,4 +117,25 @@ static void run(const gchar* name,
 	}
 
 	values[0].data.d_status = status;	
+}
+
+static gboolean format_dialog(GimpDrawable* drawable)
+{
+	GtkWidget* dialog;
+	gboolean run;
+
+	gimp_ui_init("Format", FALSE);
+
+	dialog = gimp_dialog_new(IMPORT_PLUGIN_NAME, IMPORT_PLUGIN_NAME,
+							 NULL, 0,
+							 gimp_standard_help_func, IMPORT_PLUGIN_NAME,
+							 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+							 GTK_STOCK_OK, GTK_RESPONSE_OK,
+							 NULL);
+	gtk_widget_show(dialog);
+	run = (GTK_RESPONSE_OK == gimp_dialog_run(GIMP_DIALOG(dialog)));
+	gtk_widget_destroy(dialog);
+
+	return run;
+
 }
