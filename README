@@ -5,3 +5,7 @@ Copyright (c) 2012 HyongYol Chu <hyongyolchu@gmail.com>
 
 import.c
 	import image data with various color space
+	YUV444 : YUV YVU UVY UYV VUY VYU
+	YUV422 : YUYV YVYU UYVY VYUY
+	YUV411 : UYYVYY VYYUYY YYUYYV YYVYYU
+	YUV420p : Y..U..V.. Y..V..U.. U..V..Y.. V..U..Y..
