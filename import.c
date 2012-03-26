@@ -20,7 +20,7 @@ static void run(const gchar* name,
 		gint* nreturn_vals,
 		GimpParam** return_vals);
 
-static gboolean format_dialog(GimpDrawable* drawable);
+static gboolean format_dialog(const gchar* name);
 
 GimpPlugInInfo PLUG_IN_INFO =
 {
@@ -72,7 +72,6 @@ static void run(const gchar* name,
 	static GimpParam values[2];
 	GimpPDBStatusType status = GIMP_PDB_SUCCESS;
 	GimpRunMode run_mode;
-	GimpDrawable* drawable;
 
 	/* Setting mandatory output values */
 	*nreturn_vals = 1;
@@ -91,7 +90,7 @@ static void run(const gchar* name,
 		{
 			case GIMP_RUN_INTERACTIVE:
 				/* Display the dialog */
-				if(!format_dialog(drawable));
+				if(!format_dialog(param[1].data.d_string));
 				{
 					return;
 				}
@@ -119,10 +118,17 @@ static void run(const gchar* name,
 	values[0].data.d_status = status;	
 }
 
-static gboolean format_dialog(GimpDrawable* drawable)
+static gboolean format_dialog(const gchar* fname)
 {
 	GtkWidget* dialog;
+	GtkWidget* main_vbox;
+	GtkWidget* preview;
+	GimpDrawable* drawable;
 	gboolean run;
+	gint32 image;
+
+	image = gimp_image_new(176, 144, GIMP_RGB);
+	drawable = gimp_drawable_get(image);
 
 	gimp_ui_init("Format", FALSE);
 
@@ -132,9 +138,20 @@ static gboolean format_dialog(GimpDrawable* drawable)
 							 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 							 GTK_STOCK_OK, GTK_RESPONSE_OK,
 							 NULL);
+
+	main_vbox = gtk_vbox_new(FALSE, 6);
+	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), main_vbox);
+	gtk_widget_show(main_vbox);
+
+	preview = gimp_drawable_preview_new(drawable, NULL);
+	gtk_box_pack_start(GTK_BOX(main_vbox), preview, TRUE, TRUE, 0);
+	gtk_widget_show(preview);
+
 	gtk_widget_show(dialog);
 	run = (GTK_RESPONSE_OK == gimp_dialog_run(GIMP_DIALOG(dialog)));
 	gtk_widget_destroy(dialog);
+
+	gimp_drawable_detach(drawable);
 
 	return run;
 
