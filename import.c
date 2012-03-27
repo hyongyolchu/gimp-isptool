@@ -4,6 +4,7 @@
  * All Rights Reserved.
  */
 
+#include <glib/gstdio.h>
 #include <libgimp/gimp.h>
 #include <libgimp/gimpui.h>
 
@@ -21,6 +22,8 @@ static void run(const gchar* name,
 		GimpParam** return_vals);
 
 static gboolean format_dialog(const gchar* name);
+static guchar* load_file(const gchar* fname);
+static gboolean make_drawable(GimpDrawable* drawable, guchar* buf);
 
 GimpPlugInInfo PLUG_IN_INFO =
 {
@@ -52,7 +55,7 @@ static void query(void)
 			"HyongYol Chu",
 			"Copyright HyongYol Chu",
 			"2012",
-			"_Some Image to import",
+			"_00Some Image to import",
 			NULL,
 			GIMP_PLUGIN,
 			G_N_ELEMENTS(load_args),
@@ -120,15 +123,19 @@ static void run(const gchar* name,
 
 static gboolean format_dialog(const gchar* fname)
 {
-	GtkWidget* dialog;
-	GtkWidget* main_vbox;
-	GtkWidget* preview;
-	GimpDrawable* drawable;
-	gboolean run;
-	gint32 image;
+	GtkWidget* 		dialog;
+	GtkWidget* 		main_vbox;
+	GtkWidget* 		preview;
+	GimpDrawable* 	drawable;
+	gboolean 		run;
+	gint32 			image;
+	guchar*			buf;
 
+	/* Construct drawable */
 	image = gimp_image_new(176, 144, GIMP_RGB);
 	drawable = gimp_drawable_get(image);
+	buf = load_file(fname);
+	make_drawable(drawable, buf);
 
 	gimp_ui_init("Format", FALSE);
 
@@ -153,6 +160,76 @@ static gboolean format_dialog(const gchar* fname)
 
 	gimp_drawable_detach(drawable);
 
-	return run;
+	gimp_image_delete(image);
 
+	return run;
+}
+
+static guchar* load_file(const gchar* fname)
+{
+	FILE* fd;
+	guchar* buf;
+	struct stat st;
+
+	if(-1 == g_stat(fname, &st))
+	{
+		return NULL;
+	}
+
+	buf = g_malloc(st.st_size);
+	if(NULL == buf)
+	{
+		return NULL;
+	}
+	
+	fd = g_fopen(fname, "rb");
+	if(!fd)
+	{
+		fclose(fd);
+		return NULL;
+	}
+
+	if(fread(buf, st.st_size, 1, fd) <= 0)
+	{
+		fclose(fd);
+		return NULL;
+	}
+
+	fclose(fd);
+
+	return buf;
+}
+	
+static gboolean make_drawable(GimpDrawable* drawable, guchar* buf)
+{
+	gint			x1, y1, x2, y2, width, height, channels;
+	gint			i, j, k;
+	GimpPixelRgn 	rgn;
+	guchar			output[4];
+	guchar*			ptr = buf;
+
+	gimp_drawable_mask_bounds(drawable->drawable_id, &x1, &y1, &x2, &y2);
+	width = x2 - x1;
+	height = y2 - y1;
+	channels = gimp_drawable_bpp(drawable->drawable_id);
+	gimp_pixel_rgn_init(&rgn, drawable, x1, y1, width, height, TRUE, TRUE);
+
+	for(i = x1;i < x2;i++)
+	{
+		for(j = y1;j < y2;j++)
+		{
+			for(k = 0;k < channels;k++)
+			{
+				output[k] = *ptr;
+			}
+			ptr++;
+			gimp_pixel_rgn_set_pixel(&rgn, output, i, j);
+		}
+	}
+
+	gimp_drawable_flush(drawable);
+	gimp_drawable_merge_shadow(drawable->drawable_id, TRUE);
+	gimp_drawable_update(drawable->drawable_id, x1, y1, width, height);
+
+	return TRUE;
 }
