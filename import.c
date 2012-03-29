@@ -10,6 +10,8 @@
 
 /* MACRO */
 #define IMPORT_PLUGIN_NAME "file-cstool-import"
+#define DEFAULT_WIDTH	176
+#define DEFAULT_HEIGHT	144
 
 /* Global variables */
 
@@ -126,21 +128,29 @@ static gboolean format_dialog(const gchar* fname)
 {
 	GtkWidget* 		dialog;
 	GtkWidget* 		main_vbox;
+	GtkWidget* 		main_hbox;
 	GtkWidget* 		preview;
+	GtkWidget* 		frame;
+	GtkWidget* 		width;
+	GtkWidget* 		height;
+	GtkWidget* 		button;
 	GimpDrawable* 	drawable;
 	gboolean 		run;
 	gint32 			image, layer;
 	guchar*			buf;
+	guchar			str[100];
 
 	/* Construct drawable */
-	image = gimp_image_new(176, 144, GIMP_RGB);
-	layer = gimp_layer_new(image, "default", 176, 144, GIMP_RGB_IMAGE, 100, GIMP_NORMAL_MODE);
+	image = gimp_image_new(DEFAULT_WIDTH, DEFAULT_HEIGHT, GIMP_RGB);
+	layer = gimp_layer_new(image, "default", DEFAULT_WIDTH, DEFAULT_HEIGHT, 
+						   GIMP_RGB_IMAGE, 100, GIMP_NORMAL_MODE);
 	gimp_image_add_layer(image, layer, -1);
 	drawable = gimp_drawable_get(layer);
 	buf = load_file(fname);
 	make_drawable(drawable, buf);
 	gimp_drawable_set_visible(layer, TRUE);
 
+	/* Make UI from here */
 	gimp_ui_init("Format", FALSE);
 
 	dialog = gimp_dialog_new(IMPORT_PLUGIN_NAME, IMPORT_PLUGIN_NAME,
@@ -157,6 +167,31 @@ static gboolean format_dialog(const gchar* fname)
 	preview = gimp_drawable_preview_new(drawable, NULL);
 	gtk_box_pack_start(GTK_BOX(main_vbox), preview, TRUE, TRUE, 0);
 	gtk_widget_show(preview);
+
+	frame = gtk_frame_new(NULL);
+	gtk_container_add(GTK_CONTAINER(main_vbox), frame);
+	gtk_frame_set_label(GTK_FRAME(frame), "Width and Height");
+	gtk_widget_show(frame);
+
+	main_hbox = gtk_hbox_new(FALSE, 6);
+	gtk_container_add(GTK_CONTAINER(frame), main_hbox);
+	gtk_widget_show(main_hbox);
+
+	width = gtk_entry_new();
+	sprintf(str, "%d", DEFAULT_WIDTH);
+	gtk_entry_set_text(GTK_ENTRY(width), str);
+	gtk_box_pack_start(GTK_BOX(main_hbox), width, TRUE, TRUE, 0);
+	gtk_widget_show(width);
+
+	height = gtk_entry_new();
+	sprintf(str, "%d", DEFAULT_HEIGHT);
+	gtk_entry_set_text(GTK_ENTRY(height), str);
+	gtk_box_pack_start(GTK_BOX(main_hbox), height, TRUE, TRUE, 0);
+	gtk_widget_show(height);
+
+	button = gtk_button_new_with_label("Apply");
+	gtk_box_pack_start(GTK_BOX(main_vbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
 
 	gtk_widget_show(dialog);
 	run = (GTK_RESPONSE_OK == gimp_dialog_run(GIMP_DIALOG(dialog)));
@@ -223,11 +258,6 @@ static gboolean make_drawable(GimpDrawable* drawable, guchar* buf)
 	{
 		for(i = x1;i < x2;i += 2)
 		{
-			/*for(k = 0;k < channels;k++)
-			{
-				output[k] = *ptr;
-			}
-			ptr++; */
 			input[0] = *ptr++;
 			input[1] = *ptr++;
 			input[2] = *ptr++;
