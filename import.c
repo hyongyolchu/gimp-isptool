@@ -24,6 +24,7 @@ static void run(const gchar* name,
 static gboolean format_dialog(const gchar* name);
 static guchar* load_file(const gchar* fname);
 static gboolean make_drawable(GimpDrawable* drawable, guchar* buf);
+static void yuv444_to_rgb888(guchar rgb[4], guchar y, guchar u, guchar v);
 
 GimpPlugInInfo PLUG_IN_INFO =
 {
@@ -128,14 +129,17 @@ static gboolean format_dialog(const gchar* fname)
 	GtkWidget* 		preview;
 	GimpDrawable* 	drawable;
 	gboolean 		run;
-	gint32 			image;
+	gint32 			image, layer;
 	guchar*			buf;
 
 	/* Construct drawable */
 	image = gimp_image_new(176, 144, GIMP_RGB);
-	drawable = gimp_drawable_get(image);
+	layer = gimp_layer_new(image, "default", 176, 144, GIMP_RGB_IMAGE, 100, GIMP_NORMAL_MODE);
+	gimp_image_add_layer(image, layer, -1);
+	drawable = gimp_drawable_get(layer);
 	buf = load_file(fname);
 	make_drawable(drawable, buf);
+	gimp_drawable_set_visible(layer, TRUE);
 
 	gimp_ui_init("Format", FALSE);
 
@@ -203,8 +207,9 @@ static guchar* load_file(const gchar* fname)
 static gboolean make_drawable(GimpDrawable* drawable, guchar* buf)
 {
 	gint			x1, y1, x2, y2, width, height, channels;
-	gint			i, j, k;
+	gint			i, j;
 	GimpPixelRgn 	rgn;
+	guchar			input[6];
 	guchar			output[4];
 	guchar*			ptr = buf;
 
@@ -214,22 +219,41 @@ static gboolean make_drawable(GimpDrawable* drawable, guchar* buf)
 	channels = gimp_drawable_bpp(drawable->drawable_id);
 	gimp_pixel_rgn_init(&rgn, drawable, x1, y1, width, height, TRUE, TRUE);
 
-	for(i = x1;i < x2;i++)
+	for(j = y1;j < y2;j++)
 	{
-		for(j = y1;j < y2;j++)
+		for(i = x1;i < x2;i += 2)
 		{
-			for(k = 0;k < channels;k++)
+			/*for(k = 0;k < channels;k++)
 			{
 				output[k] = *ptr;
 			}
-			ptr++;
+			ptr++; */
+			input[0] = *ptr++;
+			input[1] = *ptr++;
+			input[2] = *ptr++;
+			input[3] = *ptr++;
+			yuv444_to_rgb888(output, input[1], input[2], input [0]);
 			gimp_pixel_rgn_set_pixel(&rgn, output, i, j);
-		}
-	}
+			yuv444_to_rgb888(output, input[3], input[2], input [0]);
+			gimp_pixel_rgn_set_pixel(&rgn, output, i + 1, j);
+		} // i
+	} // j
 
 	gimp_drawable_flush(drawable);
 	gimp_drawable_merge_shadow(drawable->drawable_id, TRUE);
 	gimp_drawable_update(drawable->drawable_id, x1, y1, width, height);
 
 	return TRUE;
+}
+
+static void yuv444_to_rgb888(guchar rgb[4], guchar y, guchar u, guchar v)
+{
+	gint c = y - 16;
+	gint d = u - 128;
+	gint e = v - 128;
+
+	rgb[0] = CLAMP((298 * c + 409 * e + 128) >> 8, 0, 255);
+	rgb[1] = CLAMP((298 * c - 100 * d - 208 * e + 128) >> 8, 0, 255);
+	rgb[2] = CLAMP((298 * c + 516 * d + 128) >> 8, 0, 255);
+	rgb[3] = 0;
 }
