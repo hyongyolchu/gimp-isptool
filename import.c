@@ -242,17 +242,20 @@ static guchar* load_file(const gchar* fname)
 static gboolean make_drawable(GimpDrawable* drawable, guchar* buf)
 {
 	gint			x1, y1, x2, y2, width, height, channels;
-	gint			i, j;
+	gint			i, j, k;
 	GimpPixelRgn 	rgn;
 	guchar			input[6];
 	guchar			output[4];
 	guchar*			ptr = buf;
+	guchar*			row;
 
 	gimp_drawable_mask_bounds(drawable->drawable_id, &x1, &y1, &x2, &y2);
 	width = x2 - x1;
 	height = y2 - y1;
 	channels = gimp_drawable_bpp(drawable->drawable_id);
 	gimp_pixel_rgn_init(&rgn, drawable, x1, y1, width, height, TRUE, TRUE);
+
+	row = g_new(guchar, channels * width);
 
 	for(j = y1;j < y2;j++)
 	{
@@ -263,11 +266,20 @@ static gboolean make_drawable(GimpDrawable* drawable, guchar* buf)
 			input[2] = *ptr++;
 			input[3] = *ptr++;
 			yuv444_to_rgb888(output, input[1], input[2], input [0]);
-			gimp_pixel_rgn_set_pixel(&rgn, output, i, j);
+			for(k = 0;k < channels;k++)
+			{
+				row[channels * (i - x1) + k] = output[k];
+			}
 			yuv444_to_rgb888(output, input[3], input[2], input [0]);
-			gimp_pixel_rgn_set_pixel(&rgn, output, i + 1, j);
+			for(k = 0;k < channels;k++)
+			{
+				row[channels * (i + 1 - x1) + k] = output[k];
+			}		
 		} // i
+		gimp_pixel_rgn_set_row(&rgn, row, x1, j, width);
 	} // j
+
+	g_free(row);
 
 	gimp_drawable_flush(drawable);
 	gimp_drawable_merge_shadow(drawable->drawable_id, TRUE);
