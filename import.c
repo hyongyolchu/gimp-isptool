@@ -131,9 +131,10 @@ static gboolean format_dialog(const gchar* fname)
 	GtkWidget* 		main_hbox;
 	GtkWidget* 		preview;
 	GtkWidget* 		frame;
-	GtkWidget* 		width;
-	GtkWidget* 		height;
+	GtkWidget* 		width_ent;
+	GtkWidget* 		height_ent;
 	GtkWidget* 		button;
+	//GSList*			group;
 	GimpDrawable* 	drawable;
 	gboolean 		run;
 	gint32 			image, layer;
@@ -177,17 +178,127 @@ static gboolean format_dialog(const gchar* fname)
 	gtk_container_add(GTK_CONTAINER(frame), main_hbox);
 	gtk_widget_show(main_hbox);
 
-	width = gtk_entry_new();
+	width_ent = gtk_entry_new();
 	sprintf(str, "%d", DEFAULT_WIDTH);
-	gtk_entry_set_text(GTK_ENTRY(width), str);
-	gtk_box_pack_start(GTK_BOX(main_hbox), width, TRUE, TRUE, 0);
-	gtk_widget_show(width);
+	gtk_entry_set_text(GTK_ENTRY(width_ent), str);
+	gtk_box_pack_start(GTK_BOX(main_hbox), width_ent, TRUE, TRUE, 0);
+	gtk_widget_show(width_ent);
 
-	height = gtk_entry_new();
+	height_ent = gtk_entry_new();
 	sprintf(str, "%d", DEFAULT_HEIGHT);
-	gtk_entry_set_text(GTK_ENTRY(height), str);
-	gtk_box_pack_start(GTK_BOX(main_hbox), height, TRUE, TRUE, 0);
-	gtk_widget_show(height);
+	gtk_entry_set_text(GTK_ENTRY(height_ent), str);
+	gtk_box_pack_start(GTK_BOX(main_hbox), height_ent, TRUE, TRUE, 0);
+	gtk_widget_show(height_ent);
+
+	frame = gtk_frame_new(NULL);
+	gtk_container_add(GTK_CONTAINER(main_vbox), frame);
+	gtk_frame_set_label(GTK_FRAME(frame), "Y Component order");
+	gtk_widget_show(frame);
+
+	main_hbox = gtk_hbox_new(FALSE, 6);
+	gtk_container_add(GTK_CONTAINER(frame), main_hbox);
+	gtk_widget_show(main_hbox);
+
+	button = gtk_radio_button_new_with_label(NULL, "First");
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
+
+	button = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(button), "Second");
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
+
+	button = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(button), "Third");
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
+
+	frame = gtk_frame_new(NULL);
+	gtk_container_add(GTK_CONTAINER(main_vbox), frame);
+	gtk_frame_set_label(GTK_FRAME(frame), "Cb Component number");
+	gtk_widget_show(frame);
+
+	main_hbox = gtk_hbox_new(FALSE, 6);
+	gtk_container_add(GTK_CONTAINER(frame), main_hbox);
+	gtk_widget_show(main_hbox);
+
+	button = gtk_radio_button_new_with_label(NULL, "Zero");
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
+
+	button = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(button), "One");
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
+
+	button = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(button), "Two");
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
+
+	frame = gtk_frame_new(NULL);
+	gtk_container_add(GTK_CONTAINER(main_vbox), frame);
+	gtk_frame_set_label(GTK_FRAME(frame), "Cb Component order");
+	gtk_widget_show(frame);
+
+	main_hbox = gtk_hbox_new(FALSE, 6);
+	gtk_container_add(GTK_CONTAINER(frame), main_hbox);
+	gtk_widget_show(main_hbox);
+
+	button = gtk_radio_button_new_with_label(NULL, "First");
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
+
+	button = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(button), "Second");
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
+
+	button = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(button), "Third");
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
+
+	frame = gtk_frame_new(NULL);
+	gtk_container_add(GTK_CONTAINER(main_vbox), frame);
+	gtk_frame_set_label(GTK_FRAME(frame), "Cr Component number");
+	gtk_widget_show(frame);
+
+	main_hbox = gtk_hbox_new(FALSE, 6);
+	gtk_container_add(GTK_CONTAINER(frame), main_hbox);
+	gtk_widget_show(main_hbox);
+
+	button = gtk_radio_button_new_with_label(NULL, "Zero");
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
+
+	button = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(button), "One");
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
+
+	button = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(button), "Two");
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
+
+	frame = gtk_frame_new(NULL);
+	gtk_container_add(GTK_CONTAINER(main_vbox), frame);
+	gtk_frame_set_label(GTK_FRAME(frame), "Cr Component order");
+	gtk_widget_show(frame);
+
+	main_hbox = gtk_hbox_new(FALSE, 6);
+	gtk_container_add(GTK_CONTAINER(frame), main_hbox);
+	gtk_widget_show(main_hbox);
+
+	button = gtk_radio_button_new_with_label(NULL, "First");
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
+
+	button = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(button), "Second");
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
+
+	button = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(button), "Second");
+	gtk_box_pack_start(GTK_BOX(main_hbox), button, TRUE, TRUE, 0);
+	gtk_widget_show(button);
 
 	button = gtk_button_new_with_label("Apply");
 	gtk_box_pack_start(GTK_BOX(main_vbox), button, TRUE, TRUE, 0);
