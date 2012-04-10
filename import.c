@@ -319,27 +319,27 @@ static guchar* load_file(const gchar* fname)
 {
 	FILE* fd;
 	guchar* buf;
-	struct stat st;
+	GStatBuf st;
 
 	if(-1 == g_stat(fname, &st))
 	{
 		return NULL;
 	}
 
-	buf = g_malloc(st.st_size);
+	buf = (guchar*)g_malloc(st.st_size);
 	if(NULL == buf)
 	{
 		return NULL;
 	}
 	
-	fd = g_fopen(fname, "rb");
+	fd = fopen(fname, "rb");
 	if(!fd)
 	{
 		fclose(fd);
 		return NULL;
 	}
 
-	if(fread(buf, st.st_size, 1, fd) <= 0)
+	if(fread(buf, 1, st.st_size, fd) != st.st_size)
 	{
 		fclose(fd);
 		return NULL;
