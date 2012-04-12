@@ -8,6 +8,10 @@
 #include <libgimp/gimp.h>
 #include <libgimp/gimpui.h>
 
+#if _WIN32
+#pragma warning(disable:4996)
+#endif
+
 /* MACRO */
 #define IMPORT_PLUGIN_NAME "file-cstool-import"
 #define DEFAULT_WIDTH	176
@@ -90,7 +94,7 @@ static void run(const gchar* name,
 	 * we are in NONINTERACTIVE mode */
 	run_mode = param[0].data.d_int32;
 
-	if(0 == strcmp(name, IMPORT_PLUGIN_NAME))
+	if(0 == g_strcmp0(name, IMPORT_PLUGIN_NAME))
 	{
 		switch(run_mode)
 		{
@@ -355,10 +359,11 @@ static gboolean make_drawable(GimpDrawable* drawable, guchar* buf)
 	gint			x1, y1, x2, y2, width, height, channels;
 	gint			i, j, k;
 	GimpPixelRgn 	rgn;
-	guchar			input[6];
 	guchar			output[4];
 	guchar*			ptr = buf;
+	guchar*			y_ptr, *u_ptr, *v_ptr;
 	guchar*			row;
+	gint			mode;
 
 	gimp_drawable_mask_bounds(drawable->drawable_id, &x1, &y1, &x2, &y2);
 	width = x2 - x1;
@@ -368,24 +373,89 @@ static gboolean make_drawable(GimpDrawable* drawable, guchar* buf)
 
 	row = g_new(guchar, channels * width);
 
-	for(j = y1;j < y2;j++)
+	mode = 6;
+	switch(mode)
 	{
-		for(i = x1;i < x2;i += 2)
+	case 0:	// uyv444_inter_packed
+		break;
+	case 1:	// uyv444_inter_packed
+		break;
+	case 2:	// uyv444_inter_planar
+		break;
+	case 3:	// uyv444_prog_packed
+		break;
+	case 4:	// uyv444_prog_planar
+		break;
+	case 5:	// uyvy422_inter_packed
+		break;
+	case 6:	// uyvy422_prog_packed
+		y_ptr = buf + 1;
+		u_ptr = buf;
+		v_ptr = buf + 2;
+		break;
+	case 7:	// yuv420_inter_planar
+		break;
+	case 8:	// yuv420_prog_planar
+		break;
+	case 9:	// yuv422_inter_planar
+		break;
+	case 10:	// yuv422_prog_planar
+		break;
+	case 11:	// yuv444_inter_packed
+		break;
+	case 12:	// yuv444_inter_planar
+		break;
+	case 13:	// yuv444_prog_packed
+		break;
+	case 14:	// yuv444_prog_planar
+		break;
+	case 15:	// yuyv422_inter_packed
+		break;
+	case 16:	// yuyv422_prog_packed
+		break;
+	case 17:	// yvu420_inter_planar
+		break;
+	case 18:	// yvu420_prog_planar
+		break;
+	case 19:	// yvu422_inter_planar
+		break;
+	case 20:	// yvu422_prog_planar
+		break;
+	case 21:	// yvu444_inter_packed
+		break;
+	case 22:	// yvu444_inter_planar
+		break;
+	case 23:	// yvu444_prog_packed
+		break;
+	case 24:	// yvu444_prog_planar
+		break;
+	case 25:	// yvyu422_inter_packed
+		break;
+	case 26:	// yvyu422_prog_packed
+		break;
+	} // switch(mode)
+
+	for(j = y1;j < y2;++j)
+	{
+		for(i = x1;i < x2;++i)
 		{
-			input[0] = *ptr++;
-			input[1] = *ptr++;
-			input[2] = *ptr++;
-			input[3] = *ptr++;
-			yuv444_to_rgb888(output, input[1], input[2], input [0]);
+			yuv444_to_rgb888(output, *y_ptr, *u_ptr, *v_ptr);
 			for(k = 0;k < channels;k++)
 			{
 				row[channels * (i - x1) + k] = output[k];
 			}
-			yuv444_to_rgb888(output, input[3], input[2], input [0]);
-			for(k = 0;k < channels;k++)
+
+			switch(mode)
 			{
-				row[channels * (i + 1 - x1) + k] = output[k];
-			}		
+			case 6:	// uyvy422_prog_packed
+				y_ptr += 2;
+				if(0 != (i % 2))
+				{
+					u_ptr += 4;
+					v_ptr += 4;
+				}
+				break;
+			} // switch(mode)
 		} // i
 		gimp_pixel_rgn_set_row(&rgn, row, x1, j, width);
 	} // j
