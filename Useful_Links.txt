@@ -1,0 +1,19 @@
+Useful Links
+
+Compiling GIMP 2.3.x for Windows - Gimptalk - Premier Gimp Community
+http://www.gimptalk.com/index.php?showtopic=8468
+
+Gimp-Index
+http://developer.gimp.org/api/2.0/libgimp/libgimp-index.html
+
+YUV - Wikipedia, the free encyclopedia
+http://en.wikipedia.org/wiki/YUV
+
+GTK+ 2.0 Tutorial
+http://developer.gnome.org/gtk-tutorial/2.90/
+
+GIMP Developer Wiki
+http://wiki.gimp.org/index.php/Main_Page
+
+gittutorial(7)
+http://schacon.github.com/git/gittutorial.html
